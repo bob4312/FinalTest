@@ -10,7 +10,7 @@ const router = createRouter({
       component: () => import('../views/HostVIew.vue')
     },
     {
-        path: "/listen",
+        path: "/LK",
         name: "ListenerView",
         component: () => import('../views/ListenerView.vue')
     }
