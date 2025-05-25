@@ -11,6 +11,18 @@
       Mic is live — listeners can join using that Room ID.
     </p>
 
+    <!-- New: local monitor audio -->
+    <div v-if="micOn" style="margin-top:1rem;">
+      <p><strong>Your live audio monitor:</strong></p>
+      <audio
+        ref="localAudio"
+        autoplay
+        controls
+        playsinline
+        style="width:100%;"
+      ></audio>
+    </div>
+
     <div v-if="listeners.length" style="margin-top:1.5rem;">
       <p><strong>Connected listeners ({{ listeners.length }}):</strong></p>
       <ul>
@@ -29,9 +41,10 @@ function generateRoomId() {
   return Math.random().toString(36).substring(2, 7)
 }
 
-const roomId    = ref(generateRoomId())
-const micOn     = ref(false)
-const listeners = ref([])
+const roomId     = ref(generateRoomId())
+const micOn      = ref(false)
+const listeners  = ref([])
+const localAudio = ref(null)
 
 let hostPeer    = null
 let localStream = null
@@ -78,8 +91,19 @@ onMounted(() => {
 
 async function startMic() {
   try {
+    // get mic stream
     localStream = await navigator.mediaDevices.getUserMedia({ audio: true })
     micOn.value = true
+
+    // attach to local <audio> for self-monitor
+    if (localAudio.value) {
+      localAudio.value.srcObject = localStream
+      localAudio.value.volume = 1
+      // you can auto-play; most browsers allow autoplay for user-initiated actions
+      await localAudio.value.play().catch(() => {
+        // fallback: user can click play manually
+      })
+    }
   } catch (e) {
     alert('Could not access mic: ' + e.message)
   }
