@@ -1,7 +1,6 @@
 <template>
   <div style="padding:2rem; max-width:600px; margin:auto;">
     <h2>Listener Mode</h2>
-
     <p>Your Listener ID: <strong>{{ listenerId }}</strong></p>
 
     <label for="hostId">Enter Room ID:</label>
@@ -19,12 +18,13 @@
       Allow mic access to connect...
     </p>
 
+    <!-- always in DOM, just hidden until joined -->
     <audio
-      v-if="joined"
       ref="remoteAudio"
       autoplay
       controls
       playsinline
+      v-show="joined"
       style="display:block; width:100%; margin-top:1rem;"
     ></audio>
   </div>
@@ -34,7 +34,7 @@
 import { ref, onMounted } from 'vue'
 import Peer from 'peerjs'
 
-// 5-char alphanumeric generator
+// 5-char ID generator
 function generatePeerId() {
   return Math.random().toString(36).substring(2, 7)
 }
@@ -49,7 +49,6 @@ let listenerPeer = null
 let localStream  = null
 
 onMounted(async () => {
-  // 1) request mic so PeerJS.call() can send a real stream
   try {
     localStream = await navigator.mediaDevices.getUserMedia({ audio: true })
     micReady.value = true
@@ -57,14 +56,11 @@ onMounted(async () => {
     console.warn('Listener: mic access denied', e)
   }
 
-  // 2) initialize with 5-character listener ID
   listenerPeer = new Peer(listenerId.value)
-
   listenerPeer.on('open', id => {
     listenerId.value = id
     console.log('Listener Peer ready with ID:', id)
   })
-
   listenerPeer.on('error', err => {
     console.error('PeerJS error (listener):', err)
     alert('Listener error: ' + err)
@@ -83,20 +79,20 @@ async function joinHost() {
   console.log('Calling host:', id)
   const call = listenerPeer.call(id, localStream)
 
-  call.on('stream', async stream => {
+  call.on('stream', stream => {
     console.log('🔊 Received remote stream', stream)
-    if (!remoteAudio.value) return
-
+    // now ref is guaranteed to exist
     remoteAudio.value.srcObject = stream
-    remoteAudio.value.volume = 1
+    remoteAudio.value.volume    = 1
 
-    try {
-      await remoteAudio.value.play()
-      joined.value = true
-      console.log('▶️ Playback started')
-    } catch (playErr) {
-      console.error('❌ Playback failed:', playErr)
-      // User can still click the play button manually
+    // when metadata is loaded, start playback
+    remoteAudio.value.onloadedmetadata = () => {
+      remoteAudio.value.play().then(() => {
+        joined.value = true
+        console.log('▶️ Playback started')
+      }).catch(err => {
+        console.error('❌ Playback failed:', err)
+      })
     }
   })
 
