@@ -34,6 +34,7 @@
 import { ref, onMounted } from 'vue'
 import Peer from 'peerjs'
 
+// 5-char alphanumeric generator
 function generatePeerId() {
   return Math.random().toString(36).substring(2, 7)
 }
@@ -48,7 +49,7 @@ let listenerPeer = null
 let localStream  = null
 
 onMounted(async () => {
-  // 1) get a (muted) mic stream so PeerJS.call() is happy
+  // 1) request mic so PeerJS.call() can send a real stream
   try {
     localStream = await navigator.mediaDevices.getUserMedia({ audio: true })
     micReady.value = true
@@ -56,7 +57,7 @@ onMounted(async () => {
     console.warn('Listener: mic access denied', e)
   }
 
-  // 2) init Peer with your 5-char ID
+  // 2) initialize with 5-character listener ID
   listenerPeer = new Peer(listenerId.value)
 
   listenerPeer.on('open', id => {
@@ -88,13 +89,14 @@ async function joinHost() {
 
     remoteAudio.value.srcObject = stream
     remoteAudio.value.volume = 1
+
     try {
       await remoteAudio.value.play()
       joined.value = true
       console.log('▶️ Playback started')
     } catch (playErr) {
       console.error('❌ Playback failed:', playErr)
-      // User may need to click “play” manually
+      // User can still click the play button manually
     }
   })
 
