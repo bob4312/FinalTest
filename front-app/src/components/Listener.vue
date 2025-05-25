@@ -28,33 +28,51 @@
 import { ref } from 'vue'
 import Peer from 'peerjs'
 
-const hostId = ref('')
-const joined = ref(false)
+const hostId     = ref('')
+const joined     = ref(false)
 const remoteAudio = ref(null)
-let listenerPeer = null
+let listenerPeer  = null
 
 function joinHost() {
   const id = hostId.value.trim()
   if (id.length !== 5) {
-    return alert('Room ID must be 5 characters.')
+    return alert('Room ID must be exactly 5 characters.')
   }
 
-  listenerPeer = new Peer()
+  listenerPeer = new Peer()  
   listenerPeer.on('open', () => {
-    const call = listenerPeer.call(id, null)
+    console.log('Listener Peer open, calling host:', id)
+    const call = listenerPeer.call(id)   // <-- no `null` here
+
+    if (!call) {
+      console.error('peer.call returned:', call)
+      return alert('Unable to initiate call')
+    }
+
     call.on('stream', stream => {
+      if (!remoteAudio.value) {
+        console.error('remoteAudio ref is missing')
+        return
+      }
+      console.log('Received remote stream:', stream)
       remoteAudio.value.srcObject = stream
       joined.value = true
     })
+
     call.on('error', err => {
       console.error('Call error:', err)
       alert('Could not connect to host: ' + err)
+    })
+
+    call.on('close', () => {
+      console.log('Host closed the call')
+      joined.value = false
     })
   })
 
   listenerPeer.on('error', err => {
     console.error('PeerJS error (listener):', err)
-    alert('Listener error: ' + err)
+    alert('Listener peer error: ' + err)
   })
 }
 </script>
