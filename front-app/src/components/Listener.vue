@@ -378,7 +378,6 @@ async function joinHost() {
   background: white;
   transition: all 0.3s ease;
   letter-spacing: 1px;
-  text-transform: uppercase;
   font-family: 'Courier New', monospace;
 }
 
