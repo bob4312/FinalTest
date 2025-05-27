@@ -19,6 +19,11 @@
             <span>👥 Viewers: {{ participants.length }}</span>
           </div>
 
+          <!-- Stop Stream Button for Host -->
+          <div v-if="isHost" class="stop-section">
+            <button @click="stopStream" class="stop-btn">🛑 Stop Stream</button>
+          </div>
+
           <!-- Audio Monitor / Player for both Host and Viewer -->
           <div class="audio-section">
             <h4>
@@ -62,12 +67,22 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import Peer from 'peerjs'
 import { initializeApp, getApp, getApps } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js'
-import { getFirestore } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js'
-import { doc, onSnapshot, updateDoc } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js'
-import { useRoute } from 'vue-router'
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  deleteDoc,
+  onSnapshot,
+  updateDoc,
+  collection,
+  query,
+  where,
+  getDocs
+} from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js'
+import { useRoute, useRouter } from 'vue-router'
 
 // Firebase configuration
 const firebaseConfig = {
@@ -80,13 +95,12 @@ const firebaseConfig = {
 }
 
 // Initialize or reuse existing app
-const app = getApps().length === 0
-  ? initializeApp(firebaseConfig)
-  : getApp()
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp()
 const db = getFirestore(app)
 
 // Router and route params
 const route = useRoute()
+const router = useRouter()
 const owner = route.params.owner
 
 // State
@@ -105,6 +119,26 @@ const localStream = ref(null)
 const localAudio = ref(null)
 let peerConnection = null
 
+// Stop Stream: cleanup and delete Firestore doc
+async function stopStream() {
+  // close PeerJS
+  if (peerConnection) peerConnection.destroy()
+  // stop all tracks
+  if (localStream.value) {
+    localStream.value.getTracks().forEach(track => track.stop())
+  }
+  // delete room document
+  const roomRef = doc(db, 'vexaRooms', owner)
+  try {
+    await deleteDoc(roomRef)
+    console.log('Room deleted')
+  } catch (err) {
+    console.error('Error deleting room:', err)
+  }
+  // navigate away
+  router.push('/home')
+}
+
 // Host audio setup
 async function initHostAudio() {
   try {
@@ -119,6 +153,7 @@ async function initHostAudio() {
   }
 }
 
+// Host PeerJS setup
 function initHostPeer() {
   peerConnection = new Peer(roomData.value['Room-Owner-PeerID'])
   peerConnection.on('call', call => call.answer(localStream.value))
@@ -126,7 +161,18 @@ function initHostPeer() {
 
 // Viewer setup
 async function initViewerPeer() {
-  peerConnection = new Peer()
+  // fetch viewer PeerID
+  const usersCol = collection(db, 'vexaUsers')
+  const q = query(usersCol, where('username', '==', currentUsername))
+  const userSnap = await getDocs(q)
+  const viewerPeerId = userSnap.empty ? null : userSnap.docs[0].data().PeerID
+  if (!viewerPeerId) {
+    console.error('Viewer PeerID not found for', currentUsername)
+    return
+  }
+
+  // connect peer
+  peerConnection = new Peer(viewerPeerId)
   peerConnection.on('open', () => {
     const call = peerConnection.call(
       roomData.value['Room-Owner-PeerID'],
@@ -136,8 +182,9 @@ async function initViewerPeer() {
       if (localAudio.value) localAudio.value.srcObject = st
     })
   })
+  peerConnection.on('error', err => console.error('Peer error:', err))
 
-  // update participants once
+  // update participants
   const roomRef = doc(db, 'vexaRooms', owner)
   if (!participants.value.includes(currentUsername)) {
     try {
@@ -157,6 +204,12 @@ function sendMessage() {
   chatInput.value = ''
 }
 
+// Clean up on unmount
+onBeforeUnmount(() => {
+  if (isHost.value) stopStream()
+  else if (peerConnection) peerConnection.destroy()
+})
+
 // On mount: listen to Firestore and init streams
 onMounted(() => {
   const roomRef = doc(db, 'vexaRooms', owner)
@@ -167,6 +220,7 @@ onMounted(() => {
     }
     roomData.value = { id: snap.id, ...snap.data() }
     participants.value = snap.data()['Participants-Usernames'] || []
+
     if (!loaded.value) {
       loaded.value = true
       if (isHost.value) initHostAudio().then(initHostPeer)
@@ -177,11 +231,11 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* your existing styles */
 #live-root { padding: 20px; }
 .loading { font-family: sans-serif; text-align: center; }
 .stream-layout { display: flex; justify-content: space-between; gap: 20px; }
 .stream-info { width: 60%; background: #f8f8f8; padding: 15px; border-radius: 12px; box-shadow: 0 0 5px #ccc; }
+.stop-btn { margin: 10px 0; padding: 8px 12px; background: #c00; color: #fff; border: none; border-radius: 6px; cursor: pointer; }
 .chat-section { width: 35%; background: #fff; padding: 15px; border-radius: 12px; box-shadow: 0 0 5px #ccc; display: flex; flex-direction: column; }
 .chat-box { flex-grow: 1; max-height: 400px; overflow-y: auto; margin-bottom: 10px; border: 1px solid #ddd; padding: 10px; border-radius: 6px; }
 .chat-message { margin-bottom: 8px; }
