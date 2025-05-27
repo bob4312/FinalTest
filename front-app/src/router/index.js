@@ -55,9 +55,15 @@ const router = createRouter({
       name: 'WatchingView',
       component: () => import('../views/WatchingView.vue'),
       props: true
-    }
-
-
+  
+    },
+    {
+      path: '/listen/:owner',
+      redirect: to => ({
+        name: 'WatchingView',
+        params: { owner: to.params.owner }
+      })
+    },
 
     // {
     //   path: '/',

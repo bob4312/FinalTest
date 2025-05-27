@@ -29,7 +29,15 @@
 import { ref, onMounted, nextTick } from 'vue'
 import Peer from 'peerjs'
 import { initializeApp, getApp, getApps } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js'
-import { getFirestore, collection, doc, getDoc, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js'
+import {
+  getFirestore,
+  collection,
+  doc,
+  getDoc,
+  query,
+  where,
+  getDocs
+} from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js'
 import { useRoute } from 'vue-router'
 
 // Firebase config & init
@@ -73,10 +81,9 @@ const loading = ref(true)
 const exists = ref(false)
 const roomData = ref(null)
 const remoteAudio = ref(null)
-let peer = null
 
 onMounted(async () => {
-  // get viewer's username and PeerID
+  // get viewer's PeerID
   const currentUsername = getCookie('vexaUser')
   const userData = await getUserByUsername(currentUsername)
   const viewerPeerId = userData?.PeerID
@@ -87,15 +94,16 @@ onMounted(async () => {
     return
   }
 
-  // get microphone (needed for WebRTC handshake)
-  let localStream = null
+  // get or fallback localStream
+  let localStream
   try {
     localStream = await navigator.mediaDevices.getUserMedia({ audio: true })
   } catch (e) {
-    console.warn('Could not get local audio:', e)
+    console.warn('Could not get local audio, using empty stream:', e)
+    localStream = new MediaStream()
   }
 
-  // check if room exists
+  // check room existence
   const roomRef = doc(db, 'vexaRooms', owner)
   const snap = await getDoc(roomRef)
   if (!snap.exists()) {
@@ -107,13 +115,17 @@ onMounted(async () => {
   exists.value = true
   loading.value = false
 
-  // start peer and call host
-  peer = new Peer(viewerPeerId)
-  peer.on('open', () => {
+  // initialize peer with stored ID
+  const peer = new Peer(viewerPeerId)
+  peer.on('open', id => {
     const hostPeerId = roomData.value['Room-Owner-PeerID']
+    if (!hostPeerId) {
+      console.error('Host PeerID missing for owner:', owner)
+      return
+    }
     const call = peer.call(hostPeerId, localStream)
     if (!call) {
-      console.error('Call returned undefined — check PeerIDs and stream')
+      console.error('Call returned undefined — check PeerIDs & stream')
       return
     }
     call.on('stream', async stream => {
