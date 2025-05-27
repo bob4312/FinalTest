@@ -1,9 +1,18 @@
+<template>
+    <NavBar/>
+    <div id="containerOfStreams">
+
+    </div>
+</template>
+
+
 <script setup>
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import NavBar from '../components/NavBar.vue'
 
 const router = useRouter();
+
 
 // Cookie getter
 function getCookie() {
@@ -28,12 +37,20 @@ onMounted(() => {
     router.push('/');
   }
 });
-
 </script>
 
-<template>
-    <NavBar/>
-    <div id="containerHomePage">
-        
-    </div>
-</template>
+
+<style scoped>
+
+#containerOfStreams
+{
+    width: 990px;
+    height: 450px;
+    background-color: rgb(11, 11, 11);
+
+    position: absolute;
+    left: 100px;
+    top: 150px;
+}
+
+</style>

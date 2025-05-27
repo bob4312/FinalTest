@@ -1,3 +1,4 @@
+<!--Host.vue Code-->
 <template>
   <div class="host-container">
     <div class="host-card">
@@ -155,12 +156,6 @@ async function startMic() {
 }
 </script>
 
-<!-- <style scoped>
-button {
-  font-size: 1rem;
-  padding: .5rem 1rem;
-}
-</style> -->
 
 <style scoped>
 .host-container {
