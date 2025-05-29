@@ -8,15 +8,15 @@
 
         <div id="buttons">
             <router-link to="/home">
-                <button id="homeBtn" style="background: none; border: none;">Home</button>
+                <button id="goBackBtn" style="background: none; border: none;">Home</button>
             </router-link>
 
-            <router-link to="/browse">
-                <button id="browseBtn" style="background: none; border: none;">Browse</button>
-            </router-link>
+            <!-- <router-link to="/browse"> -->
+                <button id="networkBtn" style="background: none; border: none;">Network</button>
+            <!-- </router-link> -->
 
             <router-link to="/profile">
-                <button id="ProfileBtn" style="background: none; border: none;">Profile</button>
+                <button id="accountBtn" style="background: none; border: none;">Account</button>
             </router-link>
         </div>
 
@@ -32,68 +32,79 @@
 <style scoped>
 #container
 {
-    width: 1000px;
-    height: 90px;
+    width: 1356px;
+    height: 60px;
     position: absolute;
-    left: 93px;
-    top: 20px;
-    border-radius: 15%;
+    left: 0px;
+    top: 0px;
+    /* border-radius: 15%; */
+    /* border: 2px solid orange; */
+    background-color: #171717;
+
+    
 }
 
 
 
 #logo
 {
-    width: 70px;
-    height: 70px;
+    width: 45px;
+    height: 45px;
     /* background-color: rgb(0, 119, 255); */
     border-radius: 30px;
     position: absolute;
     
-    top: 6px;
-    left: 0px;
+    top: 5px;
+    left: 10px;
 }
 
 #title
 {
     font-weight: 1000;
-    font-size: 27px;
+    font-size: 20px;
     color: #ffffff;
     position: absolute;
-    left: 90px;
-    top: 20px;
+    left: 65px;
+    top: 12px;
     
 }
 
-#homeBtn
+#buttons
 {
     position: absolute;
-    top: 36px;
+    left: 170px;
+    top: -2px;
+}
+
+#goBackBtn
+{
+    position: absolute;
+    top: 25px;
     left: 341px;
     font-weight: 1000;
-    font-size: 20px;
+    font-size: 15px;
     color: #767676;
 
 }
 
-#browseBtn
+#networkBtn
 {
     position: absolute;
-    top: 36px;
-    left: 431px;
+    top: 25px;
+    left: 421px;
     font-weight: 1000;
-    font-size: 20px;
+    font-size: 15px;
     color: #767676;
 
 }
 
-#ProfileBtn
+#accountBtn
 {
     position: absolute;
-    top: 36px;
-    left: 539px;
+    top: 25px;
+    left: 519px;
     font-weight: 1000;
-    font-size: 20px;
+    font-size: 15px;
     color: #767676;
 
 }

@@ -143,21 +143,18 @@ onMounted(async () => {
 .not-found h2 { color: #c00; }
 </style> -->
 
-
+<!------------------------------------------------------------------>
 <template>
   <div id="watch-root">
-    <!-- Not found state -->
     <div v-if="!exists && !loading" class="not-found">
       <h2>Stream Not Found</h2>
       <p>The host "{{ owner }}" is not streaming right now or the room does not exist.</p>
     </div>
 
-    <!-- Loading state -->
     <div v-else-if="loading" class="loading">
       <p>Checking stream availability…</p>
     </div>
 
-    <!-- Listening interface -->
     <div v-else class="listen-section">
       <h2>Listening to {{ owner }}'s Stream</h2>
       <audio
@@ -300,4 +297,7 @@ onMounted(async () => {
 .listen-section { margin-top: 2rem; }
 .audio-player { width: 100%; max-width: 600px; border-radius: 8px; }
 .not-found h2 { color: #c00; }
+
 </style>
+
+

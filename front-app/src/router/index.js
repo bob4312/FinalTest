@@ -45,7 +45,7 @@ const router = createRouter({
     //     component: () => import('../views/AudioLiveView.vue')
     // }
     {
-      path: '/live/:owner',
+      path: '/live/:idOfOwner/:owner',
       name: 'AudioLiveView',
       component: () => import('../views/AudioLiveView.vue'),
       props: true
@@ -64,6 +64,22 @@ const router = createRouter({
         params: { owner: to.params.owner }
       })
     },
+    {
+      path: '/channel/:idOfOwner/:owner',
+      name: 'ProfileChannel',
+      component: () => import('../views/ProfileChannel.vue'),
+      props: true
+    },
+    // {
+    //   path: '/channel',
+    //   name: 'ProfileChannelView',
+    //   component: () => import('../views/ProfileChannel.vue'),
+    // },
+    {
+      path: '/explore',
+      name: 'ExploreView',
+      component: () => import('../views/ExploreView.vue'),
+    }
 
     // {
     //   path: '/',

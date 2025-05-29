@@ -1920,25 +1920,55 @@ async function handleMicrophoneChange() {
   }
 }
 
+// function setupAudioVisualization() {
+//   if (!audioStream.value) return
+//   audioContext.value = new (window.AudioContext || window.webkitAudioContext)()
+//   analyser.value = audioContext.value.createAnalyser()
+//   const src = audioContext.value.createMediaStreamSource(audioStream.value)
+//   src.connect(analyser.value)
+//   analyser.value.fftSize = 32
+//   const bufLen = analyser.value.frequencyBinCount
+//   const dataArr = new Uint8Array(bufLen)
+//   function update() {
+//     analyser.value.getByteFrequencyData(dataArr)
+//     for (let i = 0; i < 12; i++) {
+//       const idx = Math.floor((i / 12) * bufLen)
+//       audioLevels.value[i] = (dataArr[idx] / 255) * 100
+//     }
+//     requestAnimationFrame(update)
+//   }
+//   update()
+// }
+
 function setupAudioVisualization() {
   if (!audioStream.value) return
+
   audioContext.value = new (window.AudioContext || window.webkitAudioContext)()
   analyser.value = audioContext.value.createAnalyser()
+
   const src = audioContext.value.createMediaStreamSource(audioStream.value)
   src.connect(analyser.value)
+
   analyser.value.fftSize = 32
   const bufLen = analyser.value.frequencyBinCount
   const dataArr = new Uint8Array(bufLen)
+
   function update() {
+    // ✅ SAFETY CHECK: avoid calling if analyser is null or destroyed
+    if (!analyser.value || !audioLevels.value) return
+
     analyser.value.getByteFrequencyData(dataArr)
     for (let i = 0; i < 12; i++) {
       const idx = Math.floor((i / 12) * bufLen)
       audioLevels.value[i] = (dataArr[idx] / 255) * 100
     }
+
     requestAnimationFrame(update)
   }
+
   update()
 }
+
 
 function stopAudioStream() {
   if (audioStream.value) audioStream.value.getTracks().forEach(t => t.stop())
@@ -2007,7 +2037,7 @@ const liveCreateRoomFormSubmit = async () => {
 
     // Write room under username
     await setDoc(doc(db, 'vexaRooms', userData.username), roomData)
-
+    
     // Update user's live status
     await updateDoc(userData.docRef, {
       isLiveNow: true,
@@ -2015,7 +2045,9 @@ const liveCreateRoomFormSubmit = async () => {
     })
 
     alert(`Live stream started! Room owner: ${userData.username}`)
-    router.push({ name: 'AudioLiveView', params: { owner: userData.username } })
+    router.push({ name: 'AudioLiveView', params: { idOfOwner: userData.id, owner: userData.username } })
+    // router.push({ path: `/${userData.id}/${userData.username}` })
+
 
     stopAudioStream()
   } catch (e) {

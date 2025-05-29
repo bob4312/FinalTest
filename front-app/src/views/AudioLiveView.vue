@@ -70,6 +70,7 @@
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import Peer from 'peerjs'
 import { initializeApp, getApp, getApps } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js'
+
 import {
   getFirestore,
   doc,
@@ -120,7 +121,8 @@ const localAudio = ref(null)
 let peerConnection = null
 
 // Stop Stream: cleanup and delete Firestore doc
-async function stopStream() {
+async function stopStream() 
+{
   // close PeerJS
   if (peerConnection) peerConnection.destroy()
   // stop all tracks
@@ -135,6 +137,31 @@ async function stopStream() {
   } catch (err) {
     console.error('Error deleting room:', err)
   }
+
+
+  
+// Step 1: Define the collection
+const usersCol = collection(db, 'vexaUsers')
+
+// Step 2: Create query to match username
+const q = query(usersCol, where('username', '==', owner)) // Replace 'Mine' with your actual username
+
+// Step 3: Run query
+const snap = await getDocs(q)
+
+
+if (!snap.empty) {
+  const userDoc = snap.docs[0]
+  const userId = userDoc.id // ← This is what you need 🎯
+  const userDocRef = doc(db, 'vexaUsers', userId)
+
+  await updateDoc(userDocRef, {
+          isLiveNow: false
+  })
+} else {
+  console.log('No user found with that username')
+}
+
   // navigate away
   router.push('/home')
 }
@@ -203,6 +230,14 @@ function sendMessage() {
   messages.value.push({ sender: currentUsername, text: chatInput.value.trim() })
   chatInput.value = ''
 }
+
+
+// 🟡 Stop stream if host leaves tab or closes it
+window.addEventListener('beforeunload', () => {
+  if (isHost.value) {
+    stopStream()
+  }
+})
 
 // Clean up on unmount
 onBeforeUnmount(() => {
