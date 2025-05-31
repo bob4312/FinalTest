@@ -144,7 +144,7 @@ onMounted(async () => {
 </style> -->
 
 <!------------------------------------------------------------------>
- <template>
+<template>
   <div id="watch-root">
     <div v-if="!exists && !loading" class="not-found">
       <h2>Stream Not Found</h2>
@@ -221,7 +221,6 @@ async function getUserByUsername(username) {
 }
 
 onMounted(async () => {
-
   const currentUsername = getCookie('vexaUser')
   if (!currentUsername) {
     console.error('No logged-in username in cookies')
@@ -299,5 +298,6 @@ onMounted(async () => {
 .audio-player { width: 100%; max-width: 600px; border-radius: 8px; }
 .not-found h2 { color: #c00; }
 
-</style> 
+</style>
+
 
