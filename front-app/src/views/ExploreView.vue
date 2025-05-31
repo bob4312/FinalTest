@@ -57,7 +57,10 @@ import {
   collection,
   getDocs,
   query,
-  where
+  where,
+  updateDoc,
+  arrayUnion,
+  doc
 } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js';
 import { createClient } from '@supabase/supabase-js';
 
@@ -132,10 +135,112 @@ async function goToChannel(clickedUsername) {
   });
 }
 
-function follow(username) {
-  // implement follow logic
-  alert(`Following ${username}`);
+// async function follow(username) {
+//   // Get current user's username from cookie
+//   const currentUsername = document.cookie
+//     .split('; ')
+//     .find(row => row.startsWith('vexaUser='))
+//     ?.split('=')[1];
+
+//   if (!currentUsername) {
+//     alert("Current user not logged in.");
+//     return;
+//   }
+
+//   // Get current user's document
+//   const currentUserQuery = query(usersCol, where('username', '==', currentUsername));
+//   const currentUserSnap = await getDocs(currentUserQuery);
+
+//   if (currentUserSnap.empty) {
+//     alert(`Current user ${currentUsername} not found.`);
+//     return;
+//   }
+
+//   const currentUserDoc = currentUserSnap.docs[0];
+//   const currentUserRef = doc(db, 'vexaUsers', currentUserDoc.id);
+
+//   // Get clicked user's document
+//   const clickedUserQuery = query(usersCol, where('username', '==', username));
+//   const clickedUserSnap = await getDocs(clickedUserQuery);
+
+//   if (clickedUserSnap.empty) {
+//     alert(`User ${username} not found.`);
+//     return;
+//   }
+
+//   const clickedUserDoc = clickedUserSnap.docs[0];
+//   const clickedUserRef = doc(db, 'vexaUsers', clickedUserDoc.id);
+
+//   // Update both users
+//   await updateDoc(currentUserRef, {
+//     UsersThatHeFollows: arrayUnion(username)
+//   });
+
+//   await updateDoc(clickedUserRef, {
+//     UsersThatFollowsHim: arrayUnion(currentUsername)
+//   });
+
+//   alert(`You are now following ${username}`);
+// }
+
+
+async function follow(username) {
+  // Get current user's username from cookie
+  const currentUsername = document.cookie
+    .split('; ')
+    .find(row => row.startsWith('vexaUser='))
+    ?.split('=')[1];
+
+  if (!currentUsername) {
+    alert("Current user not logged in.");
+    return;
+  }
+
+  // Get current user's document
+  const currentUserQuery = query(usersCol, where('username', '==', currentUsername));
+  const currentUserSnap = await getDocs(currentUserQuery);
+
+  if (currentUserSnap.empty) {
+    alert(`Current user ${currentUsername} not found.`);
+    return;
+  }
+
+  const currentUserDoc = currentUserSnap.docs[0];
+  const currentUserRef = doc(db, 'vexaUsers', currentUserDoc.id);
+  const currentData = currentUserDoc.data();
+
+  // Prevent duplicate follows
+  const alreadyFollowing = currentData.UsersThatHeFollows?.includes(username);
+  if (alreadyFollowing) {
+    alert(`You're already following ${username}`);
+    return;
+  }
+
+  // Get clicked user's document
+  const clickedUserQuery = query(usersCol, where('username', '==', username));
+  const clickedUserSnap = await getDocs(clickedUserQuery);
+
+  if (clickedUserSnap.empty) {
+    alert(`User ${username} not found.`);
+    return;
+  }
+
+  const clickedUserDoc = clickedUserSnap.docs[0];
+  const clickedUserRef = doc(db, 'vexaUsers', clickedUserDoc.id);
+
+  // Update both users
+  await updateDoc(currentUserRef, {
+    UsersThatHeFollows: arrayUnion(username)
+  });
+
+  await updateDoc(clickedUserRef, {
+    UsersThatFollowsHim: arrayUnion(currentUsername)
+  });
+
+  alert(`You are now following ${username}`);
 }
+
+
 </script>
 
 <style scoped>
@@ -176,12 +281,14 @@ function follow(username) {
 }
 
 #container-Of-People-That-Created-A-Channel {
-  margin: 250px 20px 20px;
+  margin: 0px 20px 20px;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   gap: 16px;
   justify-content: flex-start;
+
+
 }
 .channel-card {
   background: #222;

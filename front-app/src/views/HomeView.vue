@@ -502,7 +502,7 @@ onMounted(async () =>
 
  -->
 
-
+<!------------------------------------------------------------------
  <script setup>
 import { onMounted, ref, reactive } from 'vue';
 import { useRouter } from 'vue-router';
@@ -695,7 +695,7 @@ onMounted(async () => {
 }
 
 #containerOfProfile {
-  border: 2px solid orange;
+  /* border: 2px solid orange; */
   width: 320px;
   height: 700px;
   position: absolute;
@@ -786,7 +786,7 @@ onMounted(async () => {
 /* … your existing button styles below … */
 
 #containerOfPreviewAudioStreams {
-  border: 2px solid orange;
+  /* border: 2px solid orange; */
   width: 760px;
   height: 700px;
   position: absolute;
@@ -835,4 +835,743 @@ onMounted(async () => {
   padding: 20px;
   color: #777;
 }
+
+
+
+
+#ExploreIcon
+{
+    width: 150px;
+    height: 140px;
+    position: absolute;
+    top: -47px;
+    left: -39px;
+}
+
+#exploreTitle
+{
+    font-size: 15px;
+    color: white;
+    font-family: 'Verdana', sans-serif;
+    font-weight: 1000;
+    position: absolute;
+    left: 60px;
+    top: 13px;
+}
+
+#ExploreButtonSection
+{
+  position: absolute;
+  top: 55px;
+}
+
+
+#homeButton
+{
+    width: 230px;
+    height: 45px;
+    font-size: 25px;
+    font-family: 'Verdana', sans-serif;
+    color: rgba(0, 0, 0, 0.466);
+    font-weight: 1000;
+    border-radius: 12%;
+    background-color: #424242;
+    position: absolute;
+    top: 20px;
+    left: 23px;
+}
+
+#homeIcon
+{
+    width: 170px;
+    height: 170px;
+    position: absolute;
+    top: -58px;
+    left: -50px;
+}
+
+#homeTitle
+{
+    font-size: 15px;
+    color: white;
+    font-family: 'Verdana', sans-serif;
+    font-weight: 1000;
+    position: absolute;
+    left: 60px;
+    top: 13px;
+}
+
+#BrowseButton
+{
+    width: 230px;
+    height: 45px;
+    font-size: 25px;
+    font-family: 'Verdana', sans-serif;
+    color: rgba(0, 0, 0, 0.466);
+    font-weight: 1000;
+    border-radius: 12%;
+    background-color: #424242;
+    position: absolute;
+    top: 20px;
+    left: 23px;
+}
+
+#browseIcon
+{
+    width: 120px;
+    height: 140px;
+    position: absolute;
+    top: -56px;
+    left: -22px;
+}
+
+#browseTitle
+{
+    font-size: 15px;
+    color: white;
+    font-family: 'Verdana', sans-serif;
+    font-weight: 1000;
+    position: absolute;
+    left: 60px;
+    top: 13px;
+}
+
+#BrowseButtonSection
+{
+  position: absolute;
+  top: 55px;
+}
+
+#ExploreButton
+{
+    width: 230px;
+    height: 45px;
+    font-size: 25px;
+    font-family: 'Verdana', sans-serif;
+    color: rgba(0, 0, 0, 0.466);
+    font-weight: 1000;
+    border-radius: 12%;
+    background-color: #424242;
+    position: absolute;
+    top: 75px;
+    left: 23px;
+}
+
+
 </style>
+
+-->
+
+
+
+<script setup>
+import { onMounted, ref, reactive } from 'vue';
+import { useRouter } from 'vue-router';
+import NavBar from '../components/NavBar.vue';
+
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
+import {
+  getFirestore,
+  collection,
+  query,
+  where,
+  getDocs,
+  updateDoc,
+  doc,
+  arrayUnion
+} from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js';
+
+import { createClient } from '@supabase/supabase-js';
+
+// ----------------------------------------
+// Firebase initialization
+// ----------------------------------------
+const firebaseConfig = {
+  apiKey: "AIzaSyAQpMoxAKJrkave5D9e8CqKeLffCCUeGAw",
+  authDomain: "vexa-d596e.firebaseapp.com",
+  projectId: "vexa-d596e",
+  storageBucket: "vexa-d596e.appspot.com",
+  messagingSenderId: "79833394084",
+  appId: "1:79833394084:web:1e5f41859b4125ef342f31"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// ----------------------------------------
+// Supabase initialization (unchanged)
+// ----------------------------------------
+const supabase = createClient(
+  'https://pnaenrrtsasabsbxaeke.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBuYWVucnJ0c2FzYWFzYnhhZWtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1MjI5ODgsImV4cCI6MjA2NDA5ODk4OH0.bAlA2tC2SPE9F0E5AlGqT_O5Qx8hjHQw7u4MVZXN33Q'
+);
+
+// ----------------------------------------
+// Cookie helper to retrieve current username
+// ----------------------------------------
+function getCookie() {
+  const cookies = document.cookie.split('; ');
+  const result = {};
+  for (const cookie of cookies) {
+    const [key, value] = cookie.split('=');
+    if (key && value !== undefined) result[key] = decodeURIComponent(value);
+  }
+  return result;
+}
+
+// ----------------------------------------
+// Vue Router
+// ----------------------------------------
+const router = useRouter();
+
+// ----------------------------------------
+// Reactive state for userProfile and rooms
+// ----------------------------------------
+const userProfile = reactive({
+  username: '',
+  followersCount: 0,
+  followingCount: 0,
+  logoUrl: ''
+});
+const roomsList = ref([]);
+const loading = ref(true);
+
+onMounted(async () => {
+  // 1. Redirect if not logged in
+  const cookies = getCookie();
+  const username = cookies.vexaUser;
+  if (!username) {
+    alert("You must be logged in to access this page.");
+    router.push('/');
+    return;
+  }
+
+  // 2. Load userProfile from `vexaUsers`
+  const usersCol = collection(db, 'vexaUsers');
+  const userQuery = query(usersCol, where('username', '==', username));
+  const userSnap = await getDocs(userQuery);
+  if (userSnap.empty) {
+    alert('User not found.');
+    router.push('/');
+    return;
+  }
+  const userData = userSnap.docs[0].data();
+  userProfile.username       = userData.username;
+  userProfile.followersCount = (userData.UsersThatFollowsHim || []).length;
+  userProfile.followingCount = (userData.UsersThatHeFollows || []).length;
+
+  // 3. Load logo from Supabase Storage
+  const { data: urlData, error: urlError } = supabase
+    .storage
+    .from('logos')
+    .getPublicUrl(username);
+  if (!urlError) userProfile.logoUrl = urlData.publicUrl;
+
+  // 4. Fetch all rooms from `vexaRooms`
+  const roomsColRef = collection(db, 'vexaRooms');
+  const roomsSnap   = await getDocs(roomsColRef);
+  roomsList.value   = roomsSnap.docs.map(docRef => ({
+    id: docRef.id,
+    ...docRef.data()
+  }));
+
+  loading.value = false;
+});
+
+// ----------------------------------------
+// joinRoom now takes `roomId` and `owner`
+// Redirects to `/watching/:owner` after updating participants
+// ----------------------------------------
+async function joinRoom(roomId, owner) {
+  const cookies = getCookie();
+  const username = cookies.vexaUser;
+  if (!username) {
+    alert("You must be logged in to join a room.");
+    return;
+  }
+
+  try {
+    const roomDocRef = doc(db, 'vexaRooms', roomId);
+    await updateDoc(roomDocRef, {
+      'Participants-Usernames': arrayUnion(username)
+    });
+    // Redirect to the listening page for that owner
+    router.push(`/watching/${owner}`);
+  } catch (err) {
+    console.error("Error joining room:", err);
+    alert("Could not join room. Please try again.");
+  }
+}
+</script>
+
+<template>
+  <NavBar />
+
+  <!-- Wait until loading is false -->
+  <div id="containerHomePage" v-if="!loading">
+    <div id="containerOfProfile">
+      <div id="logoContainer">
+        <img
+          v-if="userProfile.logoUrl"
+          :src="userProfile.logoUrl"
+          alt="Profile-Logo"
+          id="user-logo-IMG"
+        />
+      </div>
+
+      <h1 id="nameOfTheChannel">{{ userProfile.username }}</h1>
+      <div id="container-Of-Followers-And-Following-Count">
+        <div id="followersCountContainer">
+          <h1 id="numOfFollowers">{{ userProfile.followersCount }}</h1>
+          <h2 id="subtitleFollowers">Followers</h2>
+        </div>
+        <div id="followingCountContainer">
+          <h1 id="numOfFollowing">{{ userProfile.followingCount }}</h1>
+          <h2 id="subtitleFollowing">Following</h2>
+        </div>
+      </div>
+
+      <div id="sectionButtons">
+        <div id="homeButtonSection">
+          <button id="homeButton" style="border: none;">
+            <img id="homeIcon" src="../assets/iconHome.webp" />
+            <h1 id="homeTitle">Home</h1>
+          </button>
+        </div>
+
+        <div id="BrowseButtonSection">
+          <button id="BrowseButton" style="border: none;">
+            <img id="browseIcon" src="../assets/iconBrowse.webp" />
+            <h1 id="browseTitle">Browse</h1>
+          </button>
+        </div>
+
+        <div id="ExploreButtonSection">
+          <router-link to="/explore">
+            <button id="ExploreButton" style="border: none;">
+              <img id="ExploreIcon" src="../assets/iconFriends.webp" />
+              <h1 id="exploreTitle">Explore</h1>
+            </button>
+          </router-link>
+        </div>
+      </div>
+    </div>
+
+    <!-- ----------------------------- -->
+    <!-- List all rooms (vexaRooms) -->
+    <!-- ----------------------------- -->
+    <div id="containerOfPreviewAudioStreams">
+      <h1 id="streamsTitle">Available Rooms</h1>
+
+      <div id="previewStreamsList">
+        <!-- If there are any rooms, render them -->
+        <template v-if="roomsList.length">
+          <div
+            v-for="room in roomsList"
+            :key="room.id"
+            class="stream-item"
+            style="
+              border: 1px solid #444;
+              border-radius: 8px;
+              padding: 12px;
+              margin-bottom: 12px;
+              background: #1e1e1e;
+            "
+          >
+            <!-- Room Owner -->
+            <p style="margin: 4px 0; color: #f0f0f0;">
+              <strong>Owner:</strong> {{ room['Room-Owner'] || 'N/A' }}
+            </p>
+
+            <!-- Room Name -->
+            <p style="margin: 4px 0; color: #f0f0f0;">
+              <strong>Name:</strong> {{ room['Room-Name'] || 'N/A' }}
+            </p>
+
+            <!-- Room Description -->
+            <p style="margin: 4px 0; color: #bbb;">
+              <strong>Description:</strong> {{ room['Room-Desc'] || 'No description' }}
+            </p>
+
+            <!-- Room Category -->
+            <p style="margin: 4px 0; color: #bbb;">
+              <strong>Category:</strong>
+              {{
+                Array.isArray(room['Room-Category'])
+                  ? room['Room-Category'].join(', ')
+                  : room['Room-Category'] || 'Uncategorized'
+              }}
+            </p>
+
+            <!-- Participants count -->
+            <p style="margin: 4px 0; color: #bbb;">
+              <strong>Participants:</strong>
+              {{
+                Array.isArray(room['Participants-Usernames'])
+                  ? room['Participants-Usernames'].length
+                  : 0
+              }}
+            </p>
+
+            <!-- Join button -->
+            <button
+              @click="joinRoom(room.id, room['Room-Owner'])"
+              style="
+                padding: 6px 12px;
+                margin-top: 8px;
+                background: #4caf50;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+              "
+            >
+              Join
+            </button>
+          </div>
+        </template>
+
+        <!-- If no rooms exist at all -->
+        <div v-else class="no-streams" style="margin-top: 16px; color: #ccc;">
+          <p>No streams available.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+
+/* You can add or adjust CSS here to match your dark-theme style */
+#containerHomePage {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+#containerOfProfile {
+  background: #222;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  color: white;
+}
+
+#logoContainer {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+#user-logo-IMG {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.stream-item:hover {
+  background: #2a2a2a;
+}
+#containerHomePage {
+  width: 1355px;
+  height: 703px;
+  position: absolute;
+  top: 60px;
+  left: 0;
+}
+
+#containerOfProfile {
+  /* border: 2px solid orange; */
+  width: 320px;
+  height: 700px;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+#logoContainer {
+  width: 220px;
+  height: 200px;
+  position: relative;
+  top: 5px;
+  left: 39px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+#user-logo-IMG {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transform: translate(-50%, -50%);
+}
+
+#nameOfTheChannel {
+  font-size: 25px;
+  color: white;
+  font-family: 'Verdana', sans-serif;
+  font-weight: 1000;
+  position: absolute;
+  top: 190px;
+  left: 114px;
+}
+
+#container-Of-Followers-And-Following-Count {
+  border: 2px solid rgb(24, 24, 24);
+  width: 286px;
+  height: 100px;
+  background-color: #101010;
+  border-radius: 15%;
+  position: absolute;
+  top: 250px;
+  left: 17px;
+}
+
+#numOfFollowers,
+#numOfFollowing {
+  font-size: 30px;
+  color: white;
+  font-family: 'Verdana', sans-serif;
+  font-weight: 1000;
+  position: absolute;
+  top: 0;
+}
+
+#numOfFollowers { left: 80px; }
+#numOfFollowing { left: 180px; }
+
+#subtitleFollowers,
+#subtitleFollowing {
+  font-size: 15px;
+  color: white;
+  font-family: 'Verdana', sans-serif;
+  font-weight: 1000;
+  opacity: 0.3;
+  position: absolute;
+  top: 50px;
+}
+
+#subtitleFollowers { left: 53px; }
+#subtitleFollowing { left: 153px; }
+
+#sectionButtons {
+  border: 2px solid rgb(24, 24, 24);
+  width: 286px;
+  height: 330px;
+  background-color: #101010;
+  border-radius: 10%;
+  position: absolute;
+  top: 360px;
+  left: 17px;
+}
+
+/* … your existing button styles below … */
+
+#containerOfPreviewAudioStreams {
+  /* border: 2px solid orange; */
+  width: 760px;
+  height: 700px;
+  position: absolute;
+  top: 0;
+  left: 330px;
+}
+
+#streamsTitle {
+  font-weight: 1000;
+  font-size: 30px;
+  color: #ffffff;
+  position: absolute;
+  top: 30px;
+  left: 30px;
+}
+
+#previewStreamsList {
+  position: absolute;
+  top: 90px;
+  left: 0;
+  width: 100%;
+  height: 610px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+.stream-item {
+  flex: 1 1 calc(50% - 12px);
+  background: #1a1a1a;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.stream-item h3 {
+  margin: 0 0 4px;
+  color: #fff;
+}
+.stream-item p {
+  margin: 0;
+  color: #ccc;
+}
+.no-streams {
+  padding: 20px;
+  color: #777;
+}
+
+
+
+
+#ExploreIcon
+{
+    width: 150px;
+    height: 140px;
+    position: absolute;
+    top: -47px;
+    left: -39px;
+}
+
+#exploreTitle
+{
+    font-size: 15px;
+    color: white;
+    font-family: 'Verdana', sans-serif;
+    font-weight: 1000;
+    position: absolute;
+    left: 60px;
+    top: 13px;
+}
+
+#ExploreButtonSection
+{
+  position: absolute;
+  top: 55px;
+}
+
+
+#homeButton
+{
+    width: 230px;
+    height: 45px;
+    font-size: 25px;
+    font-family: 'Verdana', sans-serif;
+    color: rgba(0, 0, 0, 0.466);
+    font-weight: 1000;
+    border-radius: 12%;
+    background-color: #424242;
+    position: absolute;
+    top: 20px;
+    left: 23px;
+}
+
+#homeIcon
+{
+    width: 170px;
+    height: 170px;
+    position: absolute;
+    top: -58px;
+    left: -50px;
+}
+
+#homeTitle
+{
+    font-size: 15px;
+    color: white;
+    font-family: 'Verdana', sans-serif;
+    font-weight: 1000;
+    position: absolute;
+    left: 60px;
+    top: 13px;
+}
+
+#BrowseButton
+{
+    width: 230px;
+    height: 45px;
+    font-size: 25px;
+    font-family: 'Verdana', sans-serif;
+    color: rgba(0, 0, 0, 0.466);
+    font-weight: 1000;
+    border-radius: 12%;
+    background-color: #424242;
+    position: absolute;
+    top: 20px;
+    left: 23px;
+}
+
+#browseIcon
+{
+    width: 120px;
+    height: 140px;
+    position: absolute;
+    top: -56px;
+    left: -22px;
+}
+
+#browseTitle
+{
+    font-size: 15px;
+    color: white;
+    font-family: 'Verdana', sans-serif;
+    font-weight: 1000;
+    position: absolute;
+    left: 60px;
+    top: 13px;
+}
+
+#BrowseButtonSection
+{
+  position: absolute;
+  top: 55px;
+}
+
+#ExploreButton
+{
+    width: 230px;
+    height: 45px;
+    font-size: 25px;
+    font-family: 'Verdana', sans-serif;
+    color: rgba(0, 0, 0, 0.466);
+    font-weight: 1000;
+    border-radius: 12%;
+    background-color: #424242;
+    position: absolute;
+    top: 75px;
+    left: 23px;
+}
+
+#containerHomePage {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+#containerOfProfile {
+  background: #222;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  color: white;
+}
+
+#logoContainer {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+#user-logo-IMG {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.stream-item:hover {
+  background: #2a2a2a;
+}
+
+</style>
+
+
